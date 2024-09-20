@@ -1,0 +1,135 @@
+ca65 V2.19 - Git 5e5dd1d6c
+Main file   : ../bios/sn76489.s
+Current file: ../bios/sn76489.s
+
+000000r 1               ; vim: ft=asm_ca65 ts=4 sw=4 :
+000000r 1               ; Library functions for basic control of the SN76489 attached to the VIA
+000000r 1               
+000000r 1               .include "io.inc"
+000000r 2               ; vim: ft=asm_ca65
+000000r 2               rambankreg      = $BF00
+000000r 2               rombankreg      = $BF01
+000000r 2               
+000000r 2               acia_data       = $BF10
+000000r 2               acia_status     = $BF11
+000000r 2               acia_command    = $BF12
+000000r 2               acia_control    = $BF13
+000000r 2               
+000000r 2               via_portb       = $BF20
+000000r 2               via_porta       = $BF21
+000000r 2               via_ddrb        = $BF22
+000000r 2               via_ddra        = $BF23
+000000r 2               via_t1cl        = $BF24
+000000r 2               via_t1ch        = $BF25
+000000r 2               via_t1ll        = $BF26
+000000r 2               via_t1lh        = $BF27
+000000r 2               via_t2cl        = $BF28
+000000r 2               via_t2ch        = $BF29
+000000r 2               via_sr		= $BF2A
+000000r 2               via_acr         = $BF2B
+000000r 2               via_pcr         = $BF2C
+000000r 2               via_ifr         = $BF2D
+000000r 2               via_ier         = $BF2E
+000000r 2               
+000000r 2               vdp_ram         = $BF30
+000000r 2               vdp_reg         = $BF31
+000000r 2               
+000000r 1               .export _sn_start, _sn_stop, _sn_silence, _sn_beep, _sn_play_note, _sn_send
+000000r 1               
+000000r 1               FIRST   = %10000000
+000000r 1               SECOND  = %00000000
+000000r 1               CHAN_1  = %00000000
+000000r 1               CHAN_2  = %00100000
+000000r 1               CHAN_3  = %01000000
+000000r 1               CHAN_N  = %01100000
+000000r 1               TONE    = %00000000
+000000r 1               VOL     = %00010000
+000000r 1               VOL_OFF = %00001111
+000000r 1               VOL_MAX = %00000000
+000000r 1               
+000000r 1               SD_SCK  = %00000001
+000000r 1               SD_CS   = %00000010
+000000r 1               SN_WE   = %00000100
+000000r 1               SN_READY= %00001000
+000000r 1               SD_MOSI = %10000000
+000000r 1               
+000000r 1               .zeropage
+000000r 1               
+000000r 1               .code
+000000r 1               
+000000r 1               _sn_start:
+000000r 1  A9 87            lda #(SD_SCK | SD_CS | SD_MOSI | SN_WE)
+000002r 1  8D 23 BF         sta via_ddra
+000005r 1  A9 FF            lda #$ff
+000007r 1  8D 22 BF         sta via_ddrb
+00000Ar 1               
+00000Ar 1                   ; enable T1 Interupts
+00000Ar 1  A9 40            lda #%01000000
+00000Cr 1  8D 2B BF         sta via_acr
+00000Fr 1  A9 4E            lda #$4e ; every 50000 (25ms) on a 2mhz clock
+000011r 1  8D 24 BF         sta via_t1cl
+000014r 1  A9 C3            lda #$c3
+000016r 1  8D 25 BF         sta via_t1ch
+000019r 1  20 rr rr         jsr _sn_silence
+00001Cr 1  60               rts
+00001Dr 1               
+00001Dr 1               _sn_stop:
+00001Dr 1  20 rr rr         jsr _sn_silence
+000020r 1  60               rts
+000021r 1               
+000021r 1               _sn_silence:
+000021r 1  A9 9F            lda #(FIRST|CHAN_1|VOL|VOL_OFF)
+000023r 1  20 rr rr         jsr _sn_send
+000026r 1  A9 BF            lda #(FIRST|CHAN_2|VOL|VOL_OFF)
+000028r 1  20 rr rr         jsr _sn_send
+00002Br 1  A9 DF            lda #(FIRST|CHAN_3|VOL|VOL_OFF)
+00002Dr 1  20 rr rr         jsr _sn_send
+000030r 1  A9 FF            lda #(FIRST|CHAN_N|VOL|VOL_OFF)
+000032r 1  20 rr rr         jsr _sn_send
+000035r 1  60               rts
+000036r 1               
+000036r 1               _sn_beep:
+000036r 1  A9 07            lda #$07
+000038r 1  A0 04            ldy #$04
+00003Ar 1  20 rr rr         jsr _sn_play_note
+00003Dr 1  A0 40            ldy #$40
+00003Fr 1               @d1:
+00003Fr 1  A2 00            ldx #$00
+000041r 1               @d2:
+000041r 1  CA               dex
+000042r 1  D0 FD            bne @d2
+000044r 1  88               dey
+000045r 1  D0 F8            bne @d1
+000047r 1               
+000047r 1  20 rr rr         jsr _sn_silence
+00004Ar 1  60               rts
+00004Br 1               
+00004Br 1               _sn_play_note:
+00004Br 1  09 80            ora #(FIRST|CHAN_1|TONE)
+00004Dr 1  20 rr rr         jsr _sn_send
+000050r 1  98               tya
+000051r 1  09 00            ora #(SECOND|CHAN_1|TONE)
+000053r 1  20 rr rr         jsr _sn_send
+000056r 1  A9 94            lda #(FIRST|CHAN_1|VOL|$04)
+000058r 1  20 rr rr         jsr _sn_send
+00005Br 1  60               rts
+00005Cr 1               
+00005Cr 1               ; Byte to send in A
+00005Cr 1               _sn_send:
+00005Cr 1  8D 20 BF         sta via_portb
+00005Fr 1  A2 87            ldx #(SD_SCK|SD_CS|SD_MOSI|SN_WE)
+000061r 1  8E 21 BF         stx via_porta
+000064r 1  A2 83            ldx #(SD_SCK|SD_CS|SD_MOSI)
+000066r 1  8E 21 BF         stx via_porta
+000069r 1  20 rr rr         jsr _sn_wait
+00006Cr 1  A2 87            ldx #(SD_SCK|SD_CS|SD_MOSI|SN_WE)
+00006Er 1  8E 21 BF         stx via_porta
+000071r 1  60               rts
+000072r 1               
+000072r 1               _sn_wait:
+000072r 1  AD 21 BF         lda via_porta
+000075r 1  29 08            and #SN_READY
+000077r 1  D0 F9            bne _sn_wait
+000079r 1  60               rts
+00007Ar 1               
+00007Ar 1               

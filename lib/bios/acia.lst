@@ -1,0 +1,125 @@
+ca65 V2.19 - Git 5e5dd1d6c
+Main file   : ../bios/acia.s
+Current file: ../bios/acia.s
+
+000000r 1               ; vim: ft=asm_ca65
+000000r 1               .include "io.inc"
+000000r 2               ; vim: ft=asm_ca65
+000000r 2               rambankreg      = $BF00
+000000r 2               rombankreg      = $BF01
+000000r 2               
+000000r 2               acia_data       = $BF10
+000000r 2               acia_status     = $BF11
+000000r 2               acia_command    = $BF12
+000000r 2               acia_control    = $BF13
+000000r 2               
+000000r 2               via_portb       = $BF20
+000000r 2               via_porta       = $BF21
+000000r 2               via_ddrb        = $BF22
+000000r 2               via_ddra        = $BF23
+000000r 2               via_t1cl        = $BF24
+000000r 2               via_t1ch        = $BF25
+000000r 2               via_t1ll        = $BF26
+000000r 2               via_t1lh        = $BF27
+000000r 2               via_t2cl        = $BF28
+000000r 2               via_t2ch        = $BF29
+000000r 2               via_sr		= $BF2A
+000000r 2               via_acr         = $BF2B
+000000r 2               via_pcr         = $BF2C
+000000r 2               via_ifr         = $BF2D
+000000r 2               via_ier         = $BF2E
+000000r 2               
+000000r 2               vdp_ram         = $BF30
+000000r 2               vdp_reg         = $BF31
+000000r 2               
+000000r 1               .autoimport
+000000r 1               .globalzp ptr1
+000000r 1               .export _acia_init, _acia_getc, _acia_getc_nw, _acia_putc, _acia_puts, _acia_prbyte
+000000r 1               
+000000r 1               ; vim: set ft=asm_ca65 sw=4 ts=4 et:
+000000r 1               ACIA_PARITY_DISABLE          = %00000000
+000000r 1               ACIA_ECHO_DISABLE            = %00000000
+000000r 1               ACIA_TX_INT_DISABLE_RTS_LOW  = %00001000
+000000r 1               ACIA_RX_INT_ENABLE           = %00000000
+000000r 1               ACIA_RX_INT_DISABLE          = %00000010
+000000r 1               ACIA_DTR_LOW                 = %00000001
+000000r 1               
+000000r 1               
+000000r 1               .zeropage
+000000r 1               
+000000r 1               .code
+000000r 1               _acia_init:
+000000r 1  A9 00            lda #$00
+000002r 1  8D 11 BF         sta acia_status
+000005r 1  A9 0B            lda #(ACIA_PARITY_DISABLE | ACIA_ECHO_DISABLE | ACIA_TX_INT_DISABLE_RTS_LOW | ACIA_RX_INT_DISABLE | ACIA_DTR_LOW)
+000007r 1  8D 12 BF         sta acia_command
+00000Ar 1  A9 10            lda #$10
+00000Cr 1  8D 13 BF         sta acia_control
+00000Fr 1  60               rts
+000010r 1               
+000010r 1               _acia_getc:
+000010r 1               @wait_rxd_full:
+000010r 1  AD 11 BF         lda acia_status
+000013r 1  29 08            and #$08
+000015r 1  F0 F9            beq @wait_rxd_full
+000017r 1  AD 10 BF         lda acia_data
+00001Ar 1  60               rts
+00001Br 1               
+00001Br 1               _acia_getc_nw:
+00001Br 1  AD 11 BF         lda acia_status
+00001Er 1  29 08            and #$08
+000020r 1  F0 05            beq @done
+000022r 1  AD 10 BF         lda acia_data
+000025r 1  38               sec
+000026r 1  60               rts
+000027r 1               @done:
+000027r 1  18               clc
+000028r 1  60               rts
+000029r 1               
+000029r 1               _acia_putc:
+000029r 1  48               pha                         ; save char
+00002Ar 1               @wait_txd_empty:
+00002Ar 1  AD 11 BF         lda acia_status
+00002Dr 1  29 10            and #$10
+00002Fr 1  F0 F9            beq @wait_txd_empty
+000031r 1  68               pla                     ; restore char
+000032r 1  8D 10 BF         sta acia_data
+000035r 1  60               rts
+000036r 1               
+000036r 1               _acia_puts:
+000036r 1  5A               phy
+000037r 1  85 rr            sta ptr1+0
+000039r 1  86 rr            stx ptr1+1
+00003Br 1  A0 00            ldy #0
+00003Dr 1  B1 rr        :   lda (ptr1),y
+00003Fr 1  F0 06            beq :+
+000041r 1  20 rr rr         jsr _acia_putc
+000044r 1  C8               iny
+000045r 1  D0 F6            bne :-
+000047r 1  7A           :   ply
+000048r 1  60               rts
+000049r 1               
+000049r 1               _acia_prbyte:
+000049r 1  48               pha             ;Save A for LSD.
+00004Ar 1  4A               lsr
+00004Br 1  4A               lsr
+00004Cr 1  4A               lsr             ;MSD to LSD position.
+00004Dr 1  4A               lsr
+00004Er 1  20 rr rr         jsr prhex       ;Output hex digit.
+000051r 1  68               pla             ;Restore A.
+000052r 1               prhex:
+000052r 1  29 0F            and #$0F        ;Mask LSD for hex print.
+000054r 1  09 B0            ora #$B0        ;Add "0".
+000056r 1  C9 BA            cmp #$BA        ;Digit?
+000058r 1  90 02            bcc echo        ;Yes, output it.
+00005Ar 1  69 06            adc #$06        ;Add offset for letter.
+00005Cr 1               echo:
+00005Cr 1  48               pha             ;*Save A
+00005Dr 1  29 7F            and #$7F        ;*Change to "standard ASCII"
+00005Fr 1  20 rr rr         jsr _acia_putc
+000062r 1  68               pla             ;*Restore A
+000063r 1  60               rts
+000064r 1               .bss
+000000r 1               
+000000r 1               .rodata
+000000r 1               

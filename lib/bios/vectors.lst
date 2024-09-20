@@ -1,0 +1,47 @@
+ca65 V2.19 - Git 5e5dd1d6c
+Main file   : ../bios/vectors.s
+Current file: ../bios/vectors.s
+
+000000r 1               ; vim: set ft=asm_ca65 sw=4 ts=4 et:
+000000r 1               .include "io.inc"
+000000r 2               ; vim: ft=asm_ca65
+000000r 2               rambankreg      = $BF00
+000000r 2               rombankreg      = $BF01
+000000r 2               
+000000r 2               acia_data       = $BF10
+000000r 2               acia_status     = $BF11
+000000r 2               acia_command    = $BF12
+000000r 2               acia_control    = $BF13
+000000r 2               
+000000r 2               via_portb       = $BF20
+000000r 2               via_porta       = $BF21
+000000r 2               via_ddrb        = $BF22
+000000r 2               via_ddra        = $BF23
+000000r 2               via_t1cl        = $BF24
+000000r 2               via_t1ch        = $BF25
+000000r 2               via_t1ll        = $BF26
+000000r 2               via_t1lh        = $BF27
+000000r 2               via_t2cl        = $BF28
+000000r 2               via_t2ch        = $BF29
+000000r 2               via_sr		= $BF2A
+000000r 2               via_acr         = $BF2B
+000000r 2               via_pcr         = $BF2C
+000000r 2               via_ifr         = $BF2D
+000000r 2               via_ier         = $BF2E
+000000r 2               
+000000r 2               vdp_ram         = $BF30
+000000r 2               vdp_reg         = $BF31
+000000r 2               
+000000r 1               .autoimport
+000000r 1               .code
+000000r 1               nmi:
+000000r 1  40               rti
+000001r 1               irq:
+000001r 1  40               rti
+000002r 1               
+000002r 1               .segment "VECTORS"
+000000r 1  rr rr            .addr nmi
+000002r 1  rr rr            .addr _main
+000004r 1  rr rr            .addr irq
+000006r 1               
+000006r 1               
