@@ -8,4 +8,3 @@ executing them and generally being a nuisance.
 The primary reason for it is the uploading data into arbitrary parts of ram.
 This will be very useful for when I need to work on the operating system in bank
 0 and want to load it into high memory for testing.
-

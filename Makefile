@@ -1,8 +1,9 @@
 # Sources and objects
 C_SOURCES = \
 	  monitor/func.s \
-	  monitor/vectors.s \
-	  monitor/main.c
+	  monitor/xm.s \
+	  monitor/main.c \
+	  monitor/vectors.s
 APPNAME = bankmon
 
 # DO NOT EDIT THIS

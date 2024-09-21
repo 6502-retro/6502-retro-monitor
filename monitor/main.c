@@ -8,6 +8,7 @@ extern void __fastcall__ acia_puts(const char * string);
 extern void __fastcall__ acia_putc(const char c);
 extern void __fastcall__ acia_prbyte(const char c);
 extern char acia_getc();
+extern void xmodem();
 
 char input[32];
 uint16_t i, j;
@@ -79,13 +80,14 @@ void help(void) {
     acia_putc(12);
     acia_puts("\r\nBANK Monitor\r\n");
     acia_puts("\r\n"
-                    "B x     - Switch to ram bank x\r\n"
-                    "G xxxx  - Jump to address given by xxxx\r\n"
-                    "H       - Print help\r\n"
-                    "M xxxx  - Dump a page of memory given by xxxx\r\n"
-                    "[SPACE] - Dump next page of memory\r\n"
-                    "R x     - Switch to rom bank x\r\n"
-                    );
+              "B x     - Switch to ram bank x\r\n"
+              "G xxxx  - Jump to address given by xxxx\r\n"
+              "H       - Print help\r\n"
+              "M xxxx  - Dump a page of memory given by xxxx\r\n"
+              "[SPACE] - Dump next page of memory\r\n"
+              "R x     - Switch to rom bank x\r\n"
+              "X       - Load a file with XModem\r\n"
+              );
 }
 
 void readstr(uint8_t len, char * buf) {
@@ -189,10 +191,9 @@ void main(void) {
                     }
                     break;
                 }
-            case 'T':
+            case 'X':
                 {
-                    sprintf(input, "\r\nThe year is %d\r\n", 2024);
-                    acia_puts(input);
+                    xmodem();
                     break;
                 }
             default:
