@@ -24,6 +24,7 @@ all: clean $(BUILD_DIR)/bios.lib
 
 clean:
 	rm -fr $(BUILD_DIR)/*
+	rm -fr bios
 
 $(BUILD_DIR)/%.o: %.s
 	@mkdir -p $$(dirname $@)

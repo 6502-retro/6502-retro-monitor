@@ -8,7 +8,6 @@ extern void __fastcall__ acia_putc(const char c);
 extern void __fastcall__ acia_prbyte(const char c);
 extern char acia_getc();
 
-
 char input[32];
 uint16_t i, j;
 char ascii[17];
@@ -97,26 +96,37 @@ void readstr(uint8_t len, char * buf) {
         switch (b) {
             case '\r':
             case '\n':
-                buf[i] = '\0';
-                return;
+                {
+                    buf[i] = '\0';
+                    return;
+                }
             case 0x08:
-                i --;
-                acia_putc(' ');
-                acia_putc(0x08);
-                break;
+                {
+                    if (i > 1) {
+                        i --;
+                        acia_putc(' ');
+                        acia_putc(0x08);
+                    }
+                    break;
+                }
             default:
-                buf[i] = b;
-                i++;
-                break;
+                {
+                    buf[i] = b;
+                    i++;
+                    break;
+                }
         }
     } while ( i < len);
+
+    buf[i] = '\0';
 }
+
 void main(void) {
-    char * inp = input;
     char hexaddr[5] = "";
     uint16_t addr;
     char b;
     help();
+
     while (1) {
         readstr(16, input);
         acia_puts("\r\n");
@@ -129,7 +139,7 @@ void main(void) {
                     if ( 0 <= addr <= 63 ) {
                         (*(uint8_t*)0xBF00) = addr & 0xF;
                         acia_puts("RAM BANK ");
-                        acia_prbyte(addr & 0xF);
+                        acia_prbyte(addr & 0xFF);
                         acia_puts("\r\n");
                     }
                     break;
@@ -163,24 +173,19 @@ void main(void) {
                 {
                     b = input[3];
                     if ( 0 <= b <= 3 ) {
-                        /*
-                          A9 ??            lda b
-                          8D 01 BF         sta rombankreg
-                          6C FC FF         jmp ($FFFC)
-                        */
                         // Doing it like this because I need this routine in RAM
-                        (*(uint8_t*)0x700) = 0xA9;
-                        (*(uint8_t*)0x701) = b-'0';
-                        (*(uint8_t*)0x702) = 0x8D;
-                        (*(uint8_t*)0x703) = 0x01;
-                        (*(uint8_t*)0x704) = 0xBF;
-                        (*(uint8_t*)0x705) = 0x6C;
-                        (*(uint8_t*)0x706) = 0xFC;
-                        (*(uint8_t*)0x707) = 0xFF;
+                        (*(uint8_t*)0xC000) = 0xA9;
+                        (*(uint8_t*)0xC001) = b-'0';
+                        (*(uint8_t*)0xC002) = 0x8D;
+                        (*(uint8_t*)0xC003) = 0x01;
+                        (*(uint8_t*)0xC004) = 0xBF;
+                        (*(uint8_t*)0xC005) = 0x6C;
+                        (*(uint8_t*)0xC006) = 0xFC;
+                        (*(uint8_t*)0xC007) = 0xFF;
                         acia_puts("Switching to ROM bank ");
-                        acia_prbyte(b-'0');
+                        acia_prbyte((b-'0') & 0xF);
                         acia_puts("\r\n");
-                        __asm__("jmp $700");
+                        __asm__("jmp $C000");
                     }
                     break;
                 }
