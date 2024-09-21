@@ -15,8 +15,8 @@ ASFLAGS += $(INCLUDES) -g --feature labels_without_colons --cpu 65C02 --feature 
 BUILD_DIR = build
 
 SOURCES = \
-	$(TOP)/bios/acia.s \
-	$(TOP)/bios/sn76489.s
+	bios/acia.s \
+	bios/sn76489.s
 
 OBJS = $(addprefix $(BUILD_DIR)/, $(SOURCES:.s=.o))
 
@@ -24,7 +24,6 @@ all: clean $(BUILD_DIR)/bios.lib
 
 clean:
 	rm -fr $(BUILD_DIR)/*
-	rm -fr bios
 
 $(BUILD_DIR)/%.o: %.s
 	@mkdir -p $$(dirname $@)
