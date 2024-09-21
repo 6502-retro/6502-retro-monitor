@@ -1,6 +1,7 @@
 /* vim: set et ts=4 sw=4 */
 #include <ctype.h>
 #include <stdint.h>
+#include <stdio.h>
 
 extern void __fastcall__ go(const uint16_t addr);
 extern void __fastcall__ acia_puts(const char * string);
@@ -138,9 +139,8 @@ void main(void) {
                     addr = hex2int(hexaddr);
                     if ( 0 <= addr <= 63 ) {
                         (*(uint8_t*)0xBF00) = addr & 0xF;
-                        acia_puts("RAM BANK ");
-                        acia_prbyte(addr & 0xFF);
-                        acia_puts("\r\n");
+                        sprintf(input, "RAM BANK %d\r\n", addr);
+                        acia_puts(input);
                     }
                     break;
                 }
@@ -171,22 +171,28 @@ void main(void) {
                 }
             case 'R':
                 {
-                    b = input[3];
-                    if ( 0 <= b <= 3 ) {
+                    slice(input, hexaddr, 3, 4);
+                    addr = hex2int(hexaddr);
+                    if ( 0 <= addr <= 3 ) {
                         // Doing it like this because I need this routine in RAM
                         (*(uint8_t*)0xC000) = 0xA9;
-                        (*(uint8_t*)0xC001) = b-'0';
+                        (*(uint8_t*)0xC001) = addr & 0xF;
                         (*(uint8_t*)0xC002) = 0x8D;
                         (*(uint8_t*)0xC003) = 0x01;
                         (*(uint8_t*)0xC004) = 0xBF;
                         (*(uint8_t*)0xC005) = 0x6C;
                         (*(uint8_t*)0xC006) = 0xFC;
                         (*(uint8_t*)0xC007) = 0xFF;
-                        acia_puts("Switching to ROM bank ");
-                        acia_prbyte((b-'0') & 0xF);
-                        acia_puts("\r\n");
+                        sprintf(input, "Switching to ROM bank %d\r\n",addr & 0xF);
+                        acia_puts(input);
                         __asm__("jmp $C000");
                     }
+                    break;
+                }
+            case 'T':
+                {
+                    sprintf(input, "\r\nThe year is %d\r\n", 2024);
+                    acia_puts(input);
                     break;
                 }
             default:

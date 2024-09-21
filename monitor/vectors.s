@@ -8,6 +8,6 @@ irq:
 
 .segment "VECTORS"
     .addr nmi
-    .addr _main
+    .addr $E000
     .addr irq
 

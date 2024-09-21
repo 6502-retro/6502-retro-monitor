@@ -15,6 +15,7 @@ ASFLAGS += $(INCLUDES) -g --feature labels_without_colons --cpu 65C02 --feature 
 BUILD_DIR = build
 
 SOURCES = \
+	crt0.s \
 	bios/acia.s \
 	bios/sn76489.s
 
