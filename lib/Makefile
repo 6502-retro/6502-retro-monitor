@@ -16,8 +16,7 @@ BUILD_DIR = build
 
 SOURCES = \
 	crt0.s \
-	bios/acia.s \
-	bios/sn76489.s
+	bios/acia.s
 
 OBJS = $(addprefix $(BUILD_DIR)/, $(SOURCES:.s=.o))
 

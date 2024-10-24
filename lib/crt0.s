@@ -6,6 +6,7 @@
        .import         __STACKSTART__                  ; Linker generated
 
        .include "zeropage.inc"
+       .include "io.inc"
 
        .segment "STARTUP"
 
@@ -16,6 +17,10 @@
        jsr zerobss
        jsr copydata
        jsr initlib
+       lda #%11100111
+       sta via_porta
+       lda #%10010111
+       sta via_ddra
        jsr _main
 _exit: pha
        jsr donelib

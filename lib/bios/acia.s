@@ -64,6 +64,8 @@ _acia_puts:
     jsr _acia_putc
     iny
     bne :-
+    inc ptr1+1
+    bra :-
 :   ply
     rts
 
