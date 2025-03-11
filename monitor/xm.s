@@ -125,12 +125,12 @@ GoodCrc:
         bne    CopyBlk          ; no, copy all 128 bytes
         lda    bflag            ; is it really block 1, not block 257, 513 etc.
         beq    CopyBlk          ; no, copy all 128 bytes
-        lda    krn_ptr1         ; if HighRam is non zero then save data into HIGH RAM.  Else use given target address.
-        beq    @get_target_address
-        stz    ptr
-        lda    #$A0
-        sta    ptr + 1
-        jmp    @get_target_address_end
+        ;lda    krn_ptr1         ; if HighRam is non zero then save data into HIGH RAM.  Else use given target address.
+        ;beq    @get_target_address
+        ;stz    ptr
+        ;lda    #$A0
+        ;sta    ptr + 1
+        ;jmp    @get_target_address_end
 @get_target_address:            ; in this case, the first 2 bytes contain the start address to save to.
         lda    Rbuff,x          ; get target address from 1st 2 bytes of blk 1
         sta    ptr              ; save lo address
@@ -153,9 +153,9 @@ CopyBlk3:
 
 ;;      CHECK IF ptr points past top of high ram.  Increment rambank if it does.
         lda    ptr+1
-        cmp    #$C0
+        cmp    #$E0
         bne    CopyBlk4
-        lda    #$A0
+        lda    #$C0
         sta    ptr + 1
         inc    ram_bank 
         lda    ram_bank

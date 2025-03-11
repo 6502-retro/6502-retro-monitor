@@ -5,6 +5,7 @@ _go:
 	sta cmd+0
 	stx cmd+1
 	jmp (cmd)
+
 .bss
 cmd: .word 0
 

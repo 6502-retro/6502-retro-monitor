@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 extern void __fastcall__ go(const uint16_t addr);
+extern void __fastcall__ disable_interrupts(void);
 extern void __fastcall__ acia_puts(const char * string);
 extern void __fastcall__ acia_putc(const char c);
 extern void __fastcall__ acia_prbyte(const char c);
@@ -17,7 +18,6 @@ char byte_buf[3];
 char addr_buf[6];
 
 void DumpHex(const uint16_t * data, uint16_t size) {
-
     ascii[16] = '\0';
     for (i = 0; i < size; ++i) {
         if (i % 16 == 0) {
